@@ -79,7 +79,9 @@ export default function ResultsPanel() {
                     {formatLineRanges(issue.lines)}
                   </Typography>
                 </Box>
-                <Typography variant="body1" sx={{ mb: 1 }}>{issue.description}</Typography>
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  {issue.description}
+                </Typography>
                 {issue.suggestions.length > 0 && (
                   <Box sx={{ mt: 1 }}>
                     <Typography variant="body2" component="div">
