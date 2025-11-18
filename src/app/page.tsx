@@ -1,6 +1,7 @@
 'use client';
 
-import { Box, Container, Typography, Button, Paper, AppBar, Toolbar } from '@mui/material';
+import { useState } from 'react';
+import { Box, Container, Typography, Button, Paper, AppBar, Toolbar, Tabs, Tab } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { useAppStore } from '@/store/useAppStore';
 import ModelSelector from '@/components/ModelSelector';
@@ -10,6 +11,7 @@ import { AnalyzeResponse } from '@/types';
 
 export default function Home() {
   const { vhdlCode, selectedModel, setAnalysisResult, setIsAnalyzing, setError, isAnalyzing } = useAppStore();
+  const [activeTab, setActiveTab] = useState(0);
 
   const handleAnalyze = async () => {
     if (!vhdlCode.trim()) {
@@ -59,21 +61,38 @@ export default function Home() {
 
       <Container maxWidth={false} sx={{ mt: 3, mb: 3 }}>
         <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Box sx={{ width: 300 }}>
+          <Box sx={{ minWidth: 200 }}>
             <ModelSelector />
           </Box>
-          <Button variant="contained" size="large" onClick={handleAnalyze} disabled={isAnalyzing || !vhdlCode.trim()}>
-            {isAnalyzing ? 'Analyzing...' : 'Analyze Code'}
-          </Button>
         </Box>
 
         <Grid container spacing={2} sx={{ height: 'calc(100vh - 200px)' }}>
           <Grid size={{ xs: 12, md: 6 }}>
             <Paper elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+              <Box
+                sx={{
+                  p: 2,
+                  borderBottom: 1,
+                  borderColor: 'divider',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
                 <Typography variant="h6">VHDL Code</Typography>
+
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    onClick={handleAnalyze}
+                    disabled={isAnalyzing || !vhdlCode.trim()}
+                  >
+                    {isAnalyzing ? 'Analyzing...' : 'Analyze Code'}
+                  </Button>
+                </Box>
               </Box>
-              <Box sx={{ flexGrow: 1, p: 2 }}>
+              <Box sx={{ flexGrow: 1, maxHeight: 'calc(100vh - 20px)' }}>
                 <CodeEditor />
               </Box>
             </Paper>
@@ -81,11 +100,19 @@ export default function Home() {
 
           <Grid size={{ xs: 12, md: 6 }}>
             <Paper elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-                <Typography variant="h6">Analysis Results</Typography>
+              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
+                  <Tab label="Analysis Results" />
+                  <Tab label="Errors" />
+                </Tabs>
               </Box>
               <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
-                <ResultsPanel />
+                {activeTab === 0 && <ResultsPanel />}
+                {activeTab === 1 && (
+                  <Box sx={{ p: 2 }}>
+                    <Typography>No errors to display</Typography>
+                  </Box>
+                )}
               </Box>
             </Paper>
           </Grid>
