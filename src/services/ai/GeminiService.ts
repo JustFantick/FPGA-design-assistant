@@ -1,6 +1,9 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { AIService } from './AIService';
-import { AnalysisResult } from '@/types';
+import { AnalysisResult, Issue } from '@/types';
+import { createVHDLAnalysisPrompt } from './prompts';
+import { validateAIResponse } from './validation';
+import { randomUUID } from 'crypto';
 
 export class GeminiService implements AIService {
   private client: GoogleGenerativeAI;
@@ -10,36 +13,18 @@ export class GeminiService implements AIService {
   }
 
   async analyzeVHDL(code: string): Promise<AnalysisResult> {
-    const model = this.client.getGenerativeModel({ 
-      model: 'gemini-2.0-flash-exp',
+    const model = this.client.getGenerativeModel({
+      model: 'gemini-2.5-pro',
     });
 
-    const prompt = `Analyze the following VHDL code and provide feedback on:
-1. Syntax errors
-2. Logic issues
-3. Style and best practices
-4. Potential improvements
+    const prompt = createVHDLAnalysisPrompt(code);
 
-Format your response as JSON with this structure:
-{
-  "issues": [
-    {
-      "id": "unique-id",
-      "severity": "critical|moderate|low",
-      "message": "description",
-      "line": line_number,
-      "suggestion": "how to fix"
-    }
-  ],
-  "summary": "overall analysis summary"
-}
-
-VHDL Code:
-\`\`\`vhdl
-${code}
-\`\`\``;
-
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0,
+      },
+    });
     const response = result.response.text();
 
     return this.parseResponse(response);
@@ -50,11 +35,24 @@ ${code}
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
-        return {
-          issues: parsed.issues || [],
-          summary: parsed.summary || 'Analysis completed',
-          timestamp: new Date().toISOString(),
-        };
+        const validated = validateAIResponse(parsed);
+
+        if (validated) {
+          const issues: Issue[] = validated.issuesFound.map((issue) => ({
+            id: randomUUID(),
+            description: issue.description,
+            lines: issue.lines,
+            category: issue.category,
+            severity: issue.severity,
+            suggestions: issue.suggestions,
+          }));
+
+          return {
+            issues,
+            reasoning: validated.reasoning,
+            timestamp: new Date().toISOString(),
+          };
+        }
       }
     } catch (error) {
       console.error('Failed to parse Gemini response:', error);
@@ -62,7 +60,7 @@ ${code}
 
     return {
       issues: [],
-      summary: response,
+      reasoning: 'Failed to parse AI response. Raw output: ' + response.substring(0, 500),
       timestamp: new Date().toISOString(),
     };
   }
@@ -71,4 +69,3 @@ ${code}
     return 'Gemini 2.5 Pro';
   }
 }
-

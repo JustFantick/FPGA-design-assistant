@@ -1,6 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { AIService } from './AIService';
 import { AnalysisResult, Issue } from '@/types';
+import { createVHDLAnalysisPrompt } from './prompts';
+import { validateAIResponse } from './validation';
+import { randomUUID } from 'crypto';
 
 export class ClaudeService implements AIService {
   private client: Anthropic;
@@ -12,34 +15,12 @@ export class ClaudeService implements AIService {
   }
 
   async analyzeVHDL(code: string): Promise<AnalysisResult> {
-    const prompt = `Analyze the following VHDL code and provide feedback on:
-1. Syntax errors
-2. Logic issues
-3. Style and best practices
-4. Potential improvements
-
-Format your response as JSON with this structure:
-{
-  "issues": [
-    {
-      "id": "unique-id",
-      "severity": "critical|moderate|low",
-      "message": "description",
-      "line": line_number,
-      "suggestion": "how to fix"
-    }
-  ],
-  "summary": "overall analysis summary"
-}
-
-VHDL Code:
-\`\`\`vhdl
-${code}
-\`\`\``;
+    const prompt = createVHDLAnalysisPrompt(code);
 
     const message = await this.client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
+      model: 'claude-sonnet-4-5',
+      max_tokens: 8192,
+      temperature: 0,
       messages: [
         {
           role: 'user',
@@ -48,9 +29,7 @@ ${code}
       ],
     });
 
-    const responseText = message.content[0].type === 'text' 
-      ? message.content[0].text 
-      : '';
+    const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
 
     return this.parseResponse(responseText);
   }
@@ -60,11 +39,24 @@ ${code}
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
-        return {
-          issues: parsed.issues || [],
-          summary: parsed.summary || 'Analysis completed',
-          timestamp: new Date().toISOString(),
-        };
+        const validated = validateAIResponse(parsed);
+
+        if (validated) {
+          const issues: Issue[] = validated.issuesFound.map((issue) => ({
+            id: randomUUID(),
+            description: issue.description,
+            lines: issue.lines,
+            category: issue.category,
+            severity: issue.severity,
+            suggestions: issue.suggestions,
+          }));
+
+          return {
+            issues,
+            reasoning: validated.reasoning,
+            timestamp: new Date().toISOString(),
+          };
+        }
       }
     } catch (error) {
       console.error('Failed to parse Claude response:', error);
@@ -72,7 +64,7 @@ ${code}
 
     return {
       issues: [],
-      summary: response,
+      reasoning: 'Failed to parse AI response. Raw output: ' + response.substring(0, 500),
       timestamp: new Date().toISOString(),
     };
   }
@@ -81,4 +73,3 @@ ${code}
     return 'Claude Sonnet 4.5';
   }
 }
-

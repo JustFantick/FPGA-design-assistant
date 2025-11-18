@@ -1,22 +1,21 @@
 'use client';
 
-import {
-  Box,
-  Typography,
-  Paper,
-  Chip,
-  List,
-  ListItem,
-  ListItemText,
-  Alert,
-} from '@mui/material';
+import { Box, Typography, Paper, Chip, List, ListItem, ListItemText, Alert } from '@mui/material';
 import { useAppStore } from '@/store/useAppStore';
 import { Issue } from '@/types';
 
 const severityColors = {
   critical: 'error' as const,
-  moderate: 'warning' as const,
+  high: 'error' as const,
+  medium: 'warning' as const,
   low: 'info' as const,
+};
+
+const categoryColors = {
+  syntax: 'error' as const,
+  logic: 'warning' as const,
+  style: 'info' as const,
+  efficiency: 'success' as const,
 };
 
 export default function ResultsPanel() {
@@ -50,8 +49,15 @@ export default function ResultsPanel() {
 
   const groupedIssues = {
     critical: analysisResult.issues.filter((i) => i.severity === 'critical'),
-    moderate: analysisResult.issues.filter((i) => i.severity === 'moderate'),
+    high: analysisResult.issues.filter((i) => i.severity === 'high'),
+    medium: analysisResult.issues.filter((i) => i.severity === 'medium'),
     low: analysisResult.issues.filter((i) => i.severity === 'low'),
+  };
+
+  const formatLineRanges = (lines: Array<{ start: number; end: number }>) => {
+    return lines
+      .map((range) => (range.start === range.end ? `Line ${range.start}` : `Lines ${range.start}-${range.end}`))
+      .join(', ');
   };
 
   const renderIssueGroup = (title: string, issues: Issue[], severity: keyof typeof severityColors) => {
@@ -65,19 +71,34 @@ export default function ResultsPanel() {
         </Box>
         <List dense>
           {issues.map((issue) => (
-            <ListItem key={issue.id} sx={{ px: 0 }}>
+            <ListItem key={issue.id} sx={{ px: 0, alignItems: 'flex-start' }}>
               <ListItemText
-                primary={issue.message}
+                primary={
+                  <Box>
+                    <Box sx={{ display: 'flex', gap: 1, mb: 0.5, alignItems: 'center' }}>
+                      <Chip label={issue.category} color={categoryColors[issue.category]} size="small" />
+                      <Typography variant="body2" color="text.secondary">
+                        {formatLineRanges(issue.lines)}
+                      </Typography>
+                    </Box>
+                    <Typography variant="body1">{issue.description}</Typography>
+                  </Box>
+                }
                 secondary={
-                  <>
-                    {issue.line && `Line ${issue.line}`}
-                    {issue.suggestion && (
-                      <>
-                        <br />
-                        <strong>Suggestion:</strong> {issue.suggestion}
-                      </>
-                    )}
-                  </>
+                  issue.suggestions.length > 0 && (
+                    <Box sx={{ mt: 1 }}>
+                      <Typography variant="body2" component="div">
+                        <strong>Suggestions:</strong>
+                      </Typography>
+                      <Box component="ul" sx={{ mt: 0.5, pl: 2, mb: 0 }}>
+                        {issue.suggestions.map((suggestion, idx) => (
+                          <li key={idx}>
+                            <Typography variant="body2">{suggestion}</Typography>
+                          </li>
+                        ))}
+                      </Box>
+                    </Box>
+                  )
                 }
               />
             </ListItem>
@@ -94,17 +115,15 @@ export default function ResultsPanel() {
       </Typography>
 
       <Paper sx={{ p: 2, mb: 2, bgcolor: 'info.light' }}>
-        <Typography variant="body2">{analysisResult.summary}</Typography>
+        <Typography variant="body2">{analysisResult.reasoning}</Typography>
       </Paper>
 
       {renderIssueGroup('Critical Issues', groupedIssues.critical, 'critical')}
-      {renderIssueGroup('Moderate Issues', groupedIssues.moderate, 'moderate')}
+      {renderIssueGroup('High Priority Issues', groupedIssues.high, 'high')}
+      {renderIssueGroup('Medium Priority Issues', groupedIssues.medium, 'medium')}
       {renderIssueGroup('Low Priority Issues', groupedIssues.low, 'low')}
 
-      {analysisResult.issues.length === 0 && (
-        <Alert severity="success">No issues found!</Alert>
-      )}
+      {analysisResult.issues.length === 0 && <Alert severity="success">No issues found!</Alert>}
     </Box>
   );
 }
-
