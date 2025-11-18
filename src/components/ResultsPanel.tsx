@@ -71,36 +71,30 @@ export default function ResultsPanel() {
         </Box>
         <List dense>
           {issues.map((issue) => (
-            <ListItem key={issue.id} sx={{ px: 0, alignItems: 'flex-start' }}>
-              <ListItemText
-                primary={
-                  <Box>
-                    <Box sx={{ display: 'flex', gap: 1, mb: 0.5, alignItems: 'center' }}>
-                      <Chip label={issue.category} color={categoryColors[issue.category]} size="small" />
-                      <Typography variant="body2" color="text.secondary">
-                        {formatLineRanges(issue.lines)}
-                      </Typography>
+            <ListItem key={issue.id} sx={{ px: 0, alignItems: 'flex-start', flexDirection: 'column' }}>
+              <Box sx={{ width: '100%' }}>
+                <Box sx={{ display: 'flex', gap: 1, mb: 0.5, alignItems: 'center' }}>
+                  <Chip label={issue.category} color={categoryColors[issue.category]} size="small" />
+                  <Typography variant="body2" color="text.secondary">
+                    {formatLineRanges(issue.lines)}
+                  </Typography>
+                </Box>
+                <Typography variant="body1" sx={{ mb: 1 }}>{issue.description}</Typography>
+                {issue.suggestions.length > 0 && (
+                  <Box sx={{ mt: 1 }}>
+                    <Typography variant="body2" component="div">
+                      <strong>Suggestions:</strong>
+                    </Typography>
+                    <Box component="ul" sx={{ mt: 0.5, pl: 2, mb: 0 }}>
+                      {issue.suggestions.map((suggestion, idx) => (
+                        <li key={idx}>
+                          <Typography variant="body2">{suggestion}</Typography>
+                        </li>
+                      ))}
                     </Box>
-                    <Typography variant="body1">{issue.description}</Typography>
                   </Box>
-                }
-                secondary={
-                  issue.suggestions.length > 0 && (
-                    <Box sx={{ mt: 1 }}>
-                      <Typography variant="body2" component="div">
-                        <strong>Suggestions:</strong>
-                      </Typography>
-                      <Box component="ul" sx={{ mt: 0.5, pl: 2, mb: 0 }}>
-                        {issue.suggestions.map((suggestion, idx) => (
-                          <li key={idx}>
-                            <Typography variant="body2">{suggestion}</Typography>
-                          </li>
-                        ))}
-                      </Box>
-                    </Box>
-                  )
-                }
-              />
+                )}
+              </Box>
             </ListItem>
           ))}
         </List>
