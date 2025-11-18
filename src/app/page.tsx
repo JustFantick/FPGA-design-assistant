@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Container, Typography, Button, Paper, AppBar, Toolbar, Tabs, Tab } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { useAppStore } from '@/store/useAppStore';
@@ -30,6 +30,12 @@ export default function Home() {
   const hasCriticalIssues = analysisResult
     ? analysisResult.issues.some((issue) => issue.severity === 'critical' || issue.severity === 'high')
     : true;
+
+  useEffect(() => {
+    if (!testbenchResult && activeTab === 2) {
+      setActiveTab(0);
+    }
+  }, [testbenchResult, activeTab]);
 
   const handleAnalyze = async () => {
     if (!vhdlCode.trim()) {

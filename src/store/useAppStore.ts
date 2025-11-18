@@ -9,7 +9,7 @@ interface AppState {
   testbenchResult: TestbenchResult | null;
   isGeneratingTestbench: boolean;
   error: string | null;
-  
+
   setVhdlCode: (code: string) => void;
   setSelectedModel: (model: AIModel) => void;
   setAnalysisResult: (result: AnalysisResult | null) => void;
@@ -32,21 +32,20 @@ const initialState = {
 
 export const useAppStore = create<AppState>((set) => ({
   ...initialState,
-  
-  setVhdlCode: (code) => set({ vhdlCode: code }),
-  
+
+  setVhdlCode: (code) => set({ vhdlCode: code, analysisResult: null, testbenchResult: null }),
+
   setSelectedModel: (model) => set({ selectedModel: model }),
-  
+
   setAnalysisResult: (result) => set({ analysisResult: result, error: null }),
-  
+
   setIsAnalyzing: (isAnalyzing) => set({ isAnalyzing }),
-  
+
   setTestbenchResult: (result) => set({ testbenchResult: result, error: null }),
-  
+
   setIsGeneratingTestbench: (isGenerating) => set({ isGeneratingTestbench: isGenerating }),
-  
+
   setError: (error) => set({ error, analysisResult: null }),
-  
+
   resetStore: () => set(initialState),
 }));
-
