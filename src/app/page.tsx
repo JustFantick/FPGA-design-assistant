@@ -66,7 +66,7 @@ export default function Home() {
           </Box>
         </Box>
 
-        <Grid container spacing={2} sx={{ height: 'calc(100vh - 200px)' }}>
+        <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 6 }}>
             <Paper elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <Box
