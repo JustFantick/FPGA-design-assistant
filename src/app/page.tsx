@@ -32,7 +32,7 @@ export default function Home() {
     : true;
 
   useEffect(() => {
-    if (!testbenchResult && activeTab === 2) {
+    if (!testbenchResult && activeTab === 1) {
       setActiveTab(0);
     }
   }, [testbenchResult, activeTab]);
@@ -95,7 +95,7 @@ export default function Home() {
       if (data.success && data.result) {
         setTestbenchResult(data.result);
         setDialogOpen(false);
-        setActiveTab(2);
+        setActiveTab(1);
       } else {
         setError(data.error || 'Testbench generation failed');
       }
@@ -169,18 +169,12 @@ export default function Home() {
               <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                 <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
                   <Tab label="Analysis Results" />
-                  <Tab label="Errors" />
                   <Tab label="Testbench" disabled={!testbenchResult} />
                 </Tabs>
               </Box>
               <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
                 {activeTab === 0 && <ResultsPanel />}
-                {activeTab === 1 && (
-                  <Box sx={{ p: 2 }}>
-                    <Typography>No errors to display</Typography>
-                  </Box>
-                )}
-                {activeTab === 2 && <ResultsPanel showTestbench />}
+                {activeTab === 1 && <ResultsPanel showTestbench />}
               </Box>
             </Paper>
           </Grid>
