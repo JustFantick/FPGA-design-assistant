@@ -7,11 +7,29 @@ import { useAppStore } from '@/store/useAppStore';
 import ModelSelector from '@/components/ModelSelector';
 import CodeEditor from '@/components/CodeEditor';
 import ResultsPanel from '@/components/ResultsPanel';
-import { AnalyzeResponse } from '@/types';
+import TestbenchDialog from '@/components/TestbenchDialog';
+import { AnalyzeResponse, GenerateTestbenchResponse, TestbenchScenario } from '@/types';
 
 export default function Home() {
-  const { vhdlCode, selectedModel, setAnalysisResult, setIsAnalyzing, setError, isAnalyzing } = useAppStore();
+  const {
+    vhdlCode,
+    selectedModel,
+    analysisResult,
+    setAnalysisResult,
+    setIsAnalyzing,
+    setError,
+    isAnalyzing,
+    setTestbenchResult,
+    setIsGeneratingTestbench,
+    isGeneratingTestbench,
+    testbenchResult,
+  } = useAppStore();
   const [activeTab, setActiveTab] = useState(0);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const hasCriticalIssues = analysisResult
+    ? analysisResult.issues.some((issue) => issue.severity === 'critical' || issue.severity === 'high')
+    : true;
 
   const handleAnalyze = async () => {
     if (!vhdlCode.trim()) {
@@ -49,6 +67,40 @@ export default function Home() {
     }
   };
 
+  const handleGenerateTestbench = async (scenario: TestbenchScenario) => {
+    setIsGeneratingTestbench(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/generate-testbench', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: vhdlCode,
+          scenario,
+          model: selectedModel,
+        }),
+      });
+
+      const data: GenerateTestbenchResponse = await response.json();
+
+      if (data.success && data.result) {
+        setTestbenchResult(data.result);
+        setDialogOpen(false);
+        setActiveTab(2);
+      } else {
+        setError(data.error || 'Testbench generation failed');
+      }
+    } catch (error) {
+      setError('Network error. Please try again.');
+      console.error('Testbench generation error:', error);
+    } finally {
+      setIsGeneratingTestbench(false);
+    }
+  };
+
   return (
     <>
       <AppBar position="static">
@@ -81,7 +133,7 @@ export default function Home() {
               >
                 <Typography variant="h6">VHDL Code</Typography>
 
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
                   <Button
                     variant="contained"
                     size="large"
@@ -90,9 +142,17 @@ export default function Home() {
                   >
                     {isAnalyzing ? 'Analyzing...' : 'Analyze Code'}
                   </Button>
+                  <Button
+                    variant="outlined"
+                    size="large"
+                    onClick={() => setDialogOpen(true)}
+                    disabled={isGeneratingTestbench || !vhdlCode.trim() || hasCriticalIssues}
+                  >
+                    Generate Testbench
+                  </Button>
                 </Box>
               </Box>
-              <Box sx={{ flexGrow: 1, maxHeight: 'calc(100vh - 20px)' }}>
+              <Box sx={{ flexGrow: 1, height: 'calc(100vh - 110px)' }}>
                 <CodeEditor />
               </Box>
             </Paper>
@@ -104,6 +164,7 @@ export default function Home() {
                 <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
                   <Tab label="Analysis Results" />
                   <Tab label="Errors" />
+                  <Tab label="Testbench" disabled={!testbenchResult} />
                 </Tabs>
               </Box>
               <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
@@ -113,11 +174,19 @@ export default function Home() {
                     <Typography>No errors to display</Typography>
                   </Box>
                 )}
+                {activeTab === 2 && <ResultsPanel showTestbench />}
               </Box>
             </Paper>
           </Grid>
         </Grid>
       </Container>
+
+      <TestbenchDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onGenerate={handleGenerateTestbench}
+        isGenerating={isGeneratingTestbench}
+      />
     </>
   );
 }

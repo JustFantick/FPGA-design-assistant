@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { AIService } from './AIService';
-import { AnalysisResult, Issue } from '@/types';
-import { createVHDLAnalysisPrompt } from './prompts';
+import { AnalysisResult, Issue, TestbenchScenario } from '@/types';
+import { createVHDLAnalysisPrompt, createTestbenchGenerationPrompt } from './prompts';
 import { validateAIResponse } from './validation';
 import { randomUUID } from 'crypto';
 
@@ -63,6 +63,34 @@ export class GeminiService implements AIService {
       reasoning: 'Failed to parse AI response. Raw output: ' + response.substring(0, 500),
       timestamp: new Date().toISOString(),
     };
+  }
+
+  async generateTestbench(code: string, scenario: TestbenchScenario): Promise<string> {
+    const model = this.client.getGenerativeModel({
+      model: 'gemini-2.5-pro',
+    });
+
+    const prompt = createTestbenchGenerationPrompt(
+      code,
+      scenario.description,
+      scenario.clockPeriod,
+      scenario.simulationTime
+    );
+
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0,
+      },
+    });
+
+    let response = result.response.text();
+    
+    response = response.trim();
+    response = response.replace(/^```vhdl\n?/i, '');
+    response = response.replace(/\n?```$/, '');
+    
+    return response.trim();
   }
 
   getModelName(): string {

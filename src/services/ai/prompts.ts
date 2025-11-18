@@ -155,3 +155,48 @@ ${vhdlCode}
 
 Respond ONLY with valid JSON. Do not include any text outside the JSON structure.`;
 }
+
+export function createTestbenchGenerationPrompt(
+  vhdlCode: string,
+  scenario: string,
+  clockPeriod?: string,
+  simulationTime?: string
+): string {
+  const clockInfo = clockPeriod ? `Clock Period: ${clockPeriod}` : 'Clock Period: 10 ns (default)';
+  const simInfo = simulationTime ? `Simulation Time: ${simulationTime}` : 'Simulation Time: 1000 ns (default)';
+
+  return `Generate a complete, synthesizable VHDL testbench for the provided design. The testbench must be production-ready and follow industry best practices.
+
+DESIGN CODE:
+\`\`\`vhdl
+${vhdlCode}
+\`\`\`
+
+TEST SCENARIO:
+${scenario}
+
+TESTBENCH PARAMETERS:
+- ${clockInfo}
+- ${simInfo}
+
+TESTBENCH REQUIREMENTS:
+1. **Entity Declaration**: Create testbench entity with no ports
+2. **Component Declaration**: Declare the DUT (Design Under Test) as a component
+3. **Signal Declarations**: Create all necessary signals matching DUT ports
+4. **Clock Generation**: If DUT has clock input, generate clock with specified period
+5. **Reset Logic**: If DUT has reset, apply proper reset sequence at start
+6. **Stimulus Process**: Implement test scenarios as described by user
+7. **Assertions**: Include basic checks for expected outputs where applicable
+8. **File Headers**: Add proper comments explaining testbench purpose
+
+CODING STANDARDS:
+- Use IEEE standard libraries (ieee.std_logic_1164, ieee.numeric_std)
+- Follow consistent naming: tb_<entity_name> for testbench entity
+- Use wait statements properly for timing control
+- Add comments explaining each test phase
+- Use report statements for simulation feedback
+- Ensure proper signal initialization
+
+OUTPUT FORMAT:
+Return ONLY the complete VHDL testbench code. Do not include explanations, JSON wrappers, or markdown formatting. Start directly with the library declarations.`;
+}

@@ -47,3 +47,27 @@ export interface AnalyzeResponse {
   result?: AnalysisResult;
   error?: string;
 }
+
+export interface TestbenchScenario {
+  description: string;
+  clockPeriod?: string;
+  simulationTime?: string;
+}
+
+export interface TestbenchResult {
+  code: string;
+  scenario: TestbenchScenario;
+  timestamp: string;
+}
+
+export interface GenerateTestbenchRequest {
+  code: string;
+  scenario: TestbenchScenario;
+  model: AIModel;
+}
+
+export interface GenerateTestbenchResponse {
+  success: boolean;
+  result?: TestbenchResult;
+  error?: string;
+}

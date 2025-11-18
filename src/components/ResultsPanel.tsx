@@ -1,8 +1,11 @@
 'use client';
 
-import { Box, Typography, Paper, Chip, List, ListItem, ListItemText, Alert } from '@mui/material';
+import { Box, Typography, Paper, Chip, List, ListItem, Alert, Button, IconButton } from '@mui/material';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import DownloadIcon from '@mui/icons-material/Download';
 import { useAppStore } from '@/store/useAppStore';
 import { Issue } from '@/types';
+import { useState } from 'react';
 
 const severityColors = {
   critical: 'error' as const,
@@ -18,8 +21,111 @@ const categoryColors = {
   efficiency: 'success' as const,
 };
 
-export default function ResultsPanel() {
-  const { analysisResult, isAnalyzing, error } = useAppStore();
+interface ResultsPanelProps {
+  showTestbench?: boolean;
+}
+
+export default function ResultsPanel({ showTestbench = false }: ResultsPanelProps) {
+  const { analysisResult, isAnalyzing, error, testbenchResult, isGeneratingTestbench } = useAppStore();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyToClipboard = async () => {
+    if (testbenchResult) {
+      await navigator.clipboard.writeText(testbenchResult.code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleDownload = () => {
+    if (testbenchResult) {
+      const blob = new Blob([testbenchResult.code], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'testbench.vhd';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  if (showTestbench) {
+    if (isGeneratingTestbench) {
+      return (
+        <Box sx={{ p: 2 }}>
+          <Alert severity="info">Generating testbench...</Alert>
+        </Box>
+      );
+    }
+
+    if (!testbenchResult) {
+      return (
+        <Box sx={{ p: 2 }}>
+          <Typography variant="body1" color="text.secondary">
+            No testbench generated yet
+          </Typography>
+        </Box>
+      );
+    }
+
+    return (
+      <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6">Generated Testbench</Typography>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<ContentCopyIcon />}
+              onClick={handleCopyToClipboard}
+            >
+              {copied ? 'Copied!' : 'Copy'}
+            </Button>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<DownloadIcon />}
+              onClick={handleDownload}
+            >
+              Download
+            </Button>
+          </Box>
+        </Box>
+
+        <Paper sx={{ p: 2, mb: 2, bgcolor: 'info.light' }}>
+          <Typography variant="body2">
+            <strong>Scenario:</strong> {testbenchResult.scenario.description}
+          </Typography>
+          {testbenchResult.scenario.clockPeriod && (
+            <Typography variant="body2">
+              <strong>Clock Period:</strong> {testbenchResult.scenario.clockPeriod}
+            </Typography>
+          )}
+          {testbenchResult.scenario.simulationTime && (
+            <Typography variant="body2">
+              <strong>Simulation Time:</strong> {testbenchResult.scenario.simulationTime}
+            </Typography>
+          )}
+        </Paper>
+
+        <Paper
+          sx={{
+            p: 2,
+            flexGrow: 1,
+            overflow: 'auto',
+            bgcolor: 'grey.50',
+            fontFamily: 'monospace',
+          }}
+        >
+          <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            {testbenchResult.code}
+          </pre>
+        </Paper>
+      </Box>
+    );
+  }
 
   if (error) {
     return (
