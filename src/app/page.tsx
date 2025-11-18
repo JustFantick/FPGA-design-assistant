@@ -1,6 +1,7 @@
 'use client';
 
-import { Box, Container, Typography, Button, Grid, Paper, AppBar, Toolbar } from '@mui/material';
+import { Box, Container, Typography, Button, Paper, AppBar, Toolbar } from '@mui/material';
+import Grid from '@mui/material/Grid2';
 import { useAppStore } from '@/store/useAppStore';
 import ModelSelector from '@/components/ModelSelector';
 import CodeEditor from '@/components/CodeEditor';
@@ -8,14 +9,7 @@ import ResultsPanel from '@/components/ResultsPanel';
 import { AnalyzeResponse } from '@/types';
 
 export default function Home() {
-  const { 
-    vhdlCode, 
-    selectedModel, 
-    setAnalysisResult, 
-    setIsAnalyzing, 
-    setError,
-    isAnalyzing 
-  } = useAppStore();
+  const { vhdlCode, selectedModel, setAnalysisResult, setIsAnalyzing, setError, isAnalyzing } = useAppStore();
 
   const handleAnalyze = async () => {
     if (!vhdlCode.trim()) {
@@ -68,18 +62,13 @@ export default function Home() {
           <Box sx={{ width: 300 }}>
             <ModelSelector />
           </Box>
-          <Button
-            variant="contained"
-            size="large"
-            onClick={handleAnalyze}
-            disabled={isAnalyzing || !vhdlCode.trim()}
-          >
+          <Button variant="contained" size="large" onClick={handleAnalyze} disabled={isAnalyzing || !vhdlCode.trim()}>
             {isAnalyzing ? 'Analyzing...' : 'Analyze Code'}
           </Button>
         </Box>
 
         <Grid container spacing={2} sx={{ height: 'calc(100vh - 200px)' }}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
                 <Typography variant="h6">VHDL Code</Typography>
@@ -90,7 +79,7 @@ export default function Home() {
             </Paper>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
                 <Typography variant="h6">Analysis Results</Typography>
@@ -105,4 +94,3 @@ export default function Home() {
     </>
   );
 }
-
