@@ -4,23 +4,27 @@ import { AnalysisResult, Issue, TestbenchScenario } from '@/types';
 import { createVHDLAnalysisPrompt, createTestbenchGenerationPrompt } from './prompts';
 import { validateAIResponse } from './validation';
 import { randomUUID } from 'crypto';
+import { getModelConfig } from '@/config/models';
 
 export class ClaudeService implements AIService {
   private client: Anthropic;
+  private modelId: string;
 
-  constructor() {
+  constructor(modelId: string) {
     this.client = new Anthropic({
       apiKey: process.env.ANTHROPIC_API_KEY,
     });
+    this.modelId = modelId;
   }
 
   async analyzeVHDL(code: string): Promise<AnalysisResult> {
     const prompt = createVHDLAnalysisPrompt(code);
+    const config = getModelConfig(this.modelId);
 
     const message = await this.client.messages.create({
-      model: 'claude-sonnet-4-5',
+      model: this.modelId,
       max_tokens: 8192,
-      temperature: 0,
+      temperature: config?.useDefaultTemperature ? undefined : 0,
       messages: [
         {
           role: 'user',
@@ -77,10 +81,12 @@ export class ClaudeService implements AIService {
       scenario.simulationTime
     );
 
+    const config = getModelConfig(this.modelId);
+
     const message = await this.client.messages.create({
-      model: 'claude-sonnet-4-5',
+      model: this.modelId,
       max_tokens: 8192,
-      temperature: 0,
+      temperature: config?.useDefaultTemperature ? undefined : 0,
       messages: [
         {
           role: 'user',
@@ -90,15 +96,15 @@ export class ClaudeService implements AIService {
     });
 
     let responseText = message.content[0].type === 'text' ? message.content[0].text : '';
-    
+
     responseText = responseText.trim();
     responseText = responseText.replace(/^```vhdl\n?/i, '');
     responseText = responseText.replace(/\n?```$/, '');
-    
+
     return responseText.trim();
   }
 
   getModelName(): string {
-    return 'Claude Sonnet 4.5';
+    return this.modelId;
   }
 }

@@ -1,4 +1,10 @@
-export type AIModel = 'claude-sonnet-4.5' | 'gemini-2.5-pro';
+export type AIModel =
+  | 'claude-haiku-4-5'
+  | 'claude-sonnet-4-5'
+  | 'claude-opus-4-1'
+  | 'gemini-2.5-flash'
+  | 'gemini-2.5-pro'
+  | 'gemini-3-pro-preview';
 
 export type IssueCategory = 'syntax' | 'logic' | 'style' | 'efficiency';
 

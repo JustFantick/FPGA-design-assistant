@@ -4,25 +4,31 @@ import { AnalysisResult, Issue, TestbenchScenario } from '@/types';
 import { createVHDLAnalysisPrompt, createTestbenchGenerationPrompt } from './prompts';
 import { validateAIResponse } from './validation';
 import { randomUUID } from 'crypto';
+import { getModelConfig } from '@/config/models';
 
 export class GeminiService implements AIService {
   private client: GoogleGenerativeAI;
+  private modelId: string;
 
-  constructor() {
+  constructor(modelId: string) {
     this.client = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
+    this.modelId = modelId;
   }
 
   async analyzeVHDL(code: string): Promise<AnalysisResult> {
     const model = this.client.getGenerativeModel({
-      model: 'gemini-2.5-pro',
+      model: this.modelId,
     });
 
     const prompt = createVHDLAnalysisPrompt(code);
 
+    const config = getModelConfig(this.modelId);
+    const temperature = config?.useDefaultTemperature ? undefined : 0;
+
     const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature: 0,
+        temperature,
       },
     });
     const response = result.response.text();
@@ -67,7 +73,7 @@ export class GeminiService implements AIService {
 
   async generateTestbench(code: string, scenario: TestbenchScenario): Promise<string> {
     const model = this.client.getGenerativeModel({
-      model: 'gemini-2.5-pro',
+      model: this.modelId,
     });
 
     const prompt = createTestbenchGenerationPrompt(
@@ -77,23 +83,26 @@ export class GeminiService implements AIService {
       scenario.simulationTime
     );
 
+    const config = getModelConfig(this.modelId);
+    const temperature = config?.useDefaultTemperature ? undefined : 0;
+
     const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature: 0,
+        temperature,
       },
     });
 
     let response = result.response.text();
-    
+
     response = response.trim();
     response = response.replace(/^```vhdl\n?/i, '');
     response = response.replace(/\n?```$/, '');
-    
+
     return response.trim();
   }
 
   getModelName(): string {
-    return 'Gemini 2.5 Pro';
+    return this.modelId;
   }
 }

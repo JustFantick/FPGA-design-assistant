@@ -3,6 +3,7 @@
 import { FormControl, InputLabel, MenuItem, Select, SelectChangeEvent } from '@mui/material';
 import { useAppStore } from '@/store/useAppStore';
 import { AIModel } from '@/types';
+import { AI_MODELS } from '@/config/models';
 
 export default function ModelSelector() {
   const { selectedModel, setSelectedModel } = useAppStore();
@@ -21,8 +22,11 @@ export default function ModelSelector() {
         label="AI Model"
         onChange={handleChange}
       >
-        <MenuItem value="claude-sonnet-4.5">Claude Sonnet 4.5</MenuItem>
-        <MenuItem value="gemini-2.5-pro">Gemini 2.5 Pro</MenuItem>
+        {AI_MODELS.map((model) => (
+          <MenuItem key={model.id} value={model.id}>
+            {model.name}
+          </MenuItem>
+        ))}
       </Select>
     </FormControl>
   );

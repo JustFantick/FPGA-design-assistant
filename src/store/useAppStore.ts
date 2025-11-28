@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { AIModel, AnalysisResult, TestbenchResult } from '@/types';
+import { DEFAULT_MODEL } from '@/config/models';
 
 interface AppState {
   vhdlCode: string;
@@ -22,7 +23,7 @@ interface AppState {
 
 const initialState = {
   vhdlCode: '',
-  selectedModel: 'claude-sonnet-4.5' as AIModel,
+  selectedModel: DEFAULT_MODEL as AIModel,
   analysisResult: null,
   isAnalyzing: false,
   testbenchResult: null,
