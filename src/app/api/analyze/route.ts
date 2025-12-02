@@ -8,10 +8,7 @@ export async function POST(request: NextRequest) {
     const { code, model } = body;
 
     if (!code || !code.trim()) {
-      return NextResponse.json<AnalyzeResponse>(
-        { success: false, error: 'VHDL code is required' },
-        { status: 400 }
-      );
+      return NextResponse.json<AnalyzeResponse>({ success: false, error: 'VHDL code is required' }, { status: 400 });
     }
 
     if (!model) {
@@ -39,4 +36,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

@@ -75,20 +75,10 @@ export default function ResultsPanel({ showTestbench = false }: ResultsPanelProp
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h6">Generated Testbench</Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<ContentCopyIcon />}
-              onClick={handleCopyToClipboard}
-            >
+            <Button variant="outlined" size="small" startIcon={<ContentCopyIcon />} onClick={handleCopyToClipboard}>
               {copied ? 'Copied!' : 'Copy'}
             </Button>
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<DownloadIcon />}
-              onClick={handleDownload}
-            >
+            <Button variant="outlined" size="small" startIcon={<DownloadIcon />} onClick={handleDownload}>
               Download
             </Button>
           </Box>
@@ -119,9 +109,7 @@ export default function ResultsPanel({ showTestbench = false }: ResultsPanelProp
             fontFamily: 'monospace',
           }}
         >
-          <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-            {testbenchResult.code}
-          </pre>
+          <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{testbenchResult.code}</pre>
         </Paper>
       </Box>
     );

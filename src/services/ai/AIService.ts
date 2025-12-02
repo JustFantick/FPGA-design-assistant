@@ -5,4 +5,3 @@ export interface AIService {
   generateTestbench(code: string, scenario: TestbenchScenario): Promise<string>;
   getModelName(): string;
 }
-

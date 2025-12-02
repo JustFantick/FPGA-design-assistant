@@ -21,12 +21,7 @@ interface TestbenchDialogProps {
   isGenerating: boolean;
 }
 
-export default function TestbenchDialog({
-  open,
-  onClose,
-  onGenerate,
-  isGenerating,
-}: TestbenchDialogProps) {
+export default function TestbenchDialog({ open, onClose, onGenerate, isGenerating }: TestbenchDialogProps) {
   const [description, setDescription] = useState('');
   const [clockPeriod, setClockPeriod] = useState('');
   const [simulationTime, setSimulationTime] = useState('');
@@ -110,4 +105,3 @@ export default function TestbenchDialog({
     </Dialog>
   );
 }
-
