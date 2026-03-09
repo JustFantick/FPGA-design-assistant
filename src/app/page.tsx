@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Box, Container, Typography, Button, Paper, AppBar, Toolbar, Tabs, Tab } from '@mui/material';
+import { Box, Container, Typography, Button, Paper, Tabs, Tab } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { useAppStore } from '@/store/useAppStore';
 import ModelSelector from '@/components/ModelSelector';
@@ -109,14 +109,6 @@ export default function Home() {
 
   return (
     <>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            FPGA Design Assistant
-          </Typography>
-        </Toolbar>
-      </AppBar>
-
       <Container maxWidth={false} sx={{ mt: 3, mb: 3 }}>
         <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box sx={{ minWidth: 200 }}>
