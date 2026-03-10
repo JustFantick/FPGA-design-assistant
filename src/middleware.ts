@@ -1,17 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { rateLimiter, getClientIdentifier } from '@/lib/rateLimiter';
+import { rateLimiter, authRateLimiter, getClientIdentifier } from '@/lib/rateLimiter';
 
 const API_PATHS = ['/api/analyze', '/api/generate-testbench'];
+const AUTH_PATHS = ['/api/auth/register', '/api/auth/callback/credentials'];
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  if (!API_PATHS.includes(pathname)) {
+  const isApiPath = API_PATHS.includes(pathname);
+  const isAuthPath = AUTH_PATHS.includes(pathname);
+
+  if (!isApiPath && !isAuthPath) {
     return NextResponse.next();
   }
 
   const identifier = getClientIdentifier(request);
-  const result = rateLimiter.checkLimit(identifier, pathname);
+  const limiter = isAuthPath ? authRateLimiter : rateLimiter;
+  const result = limiter.checkLimit(identifier, pathname);
 
   if (!result.allowed) {
     const resetTimeSeconds = Math.ceil((result.resetTime - Date.now()) / 1000);

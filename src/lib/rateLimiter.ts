@@ -88,6 +88,11 @@ const getConfig = (): RateLimitConfig => {
 
 export const rateLimiter = new RateLimiter(getConfig());
 
+export const authRateLimiter = new RateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  maxRequests: 10,
+});
+
 export function getClientIdentifier(request: Request): string {
   const forwarded = request.headers.get('x-forwarded-for');
   const ip = forwarded ? forwarded.split(',')[0].trim() : request.headers.get('x-real-ip') || 'unknown';
