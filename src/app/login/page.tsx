@@ -10,8 +10,11 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
+import Divider from '@mui/material/Divider';
 import Link from '@mui/material/Link';
 import NextLink from 'next/link';
+import GoogleIcon from '@mui/icons-material/Google';
+import GitHubIcon from '@mui/icons-material/GitHub';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -63,6 +66,29 @@ export default function LoginPage() {
               {error}
             </Alert>
           )}
+
+          <Button
+            variant="outlined"
+            fullWidth
+            size="large"
+            startIcon={<GoogleIcon />}
+            onClick={() => signIn('google', { callbackUrl: '/' })}
+            sx={{ mb: 1 }}
+          >
+            Sign in with Google
+          </Button>
+          <Button
+            variant="outlined"
+            fullWidth
+            size="large"
+            startIcon={<GitHubIcon />}
+            onClick={() => signIn('github', { callbackUrl: '/' })}
+            sx={{ mb: 2 }}
+          >
+            Sign in with GitHub
+          </Button>
+
+          <Divider sx={{ mb: 2 }}>or</Divider>
 
           <Box component="form" onSubmit={handleSubmit}>
             <TextField
