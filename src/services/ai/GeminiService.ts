@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import { AIService } from './AIService';
 import { AnalysisResult, Issue, TestbenchScenario } from '@/types';
 import { createVHDLAnalysisPrompt, createTestbenchGenerationPrompt } from './prompts';
@@ -7,33 +7,29 @@ import { randomUUID } from 'crypto';
 import { getModelConfig } from '@/config/models';
 
 export class GeminiService implements AIService {
-  private client: GoogleGenerativeAI;
+  private client: GoogleGenAI;
   private modelId: string;
 
   constructor(modelId: string) {
-    this.client = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
+    this.client = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY || '' });
     this.modelId = modelId;
   }
 
   async analyzeVHDL(code: string): Promise<AnalysisResult> {
-    const model = this.client.getGenerativeModel({
-      model: this.modelId,
-    });
-
     const prompt = createVHDLAnalysisPrompt(code);
 
     const config = getModelConfig(this.modelId);
     const temperature = config?.useDefaultTemperature ? undefined : 0;
 
-    const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: {
+    const result = await this.client.models.generateContent({
+      model: this.modelId,
+      contents: prompt,
+      config: {
         temperature,
       },
     });
-    const response = result.response.text();
 
-    return this.parseResponse(response);
+    return this.parseResponse(result.text ?? '');
   }
 
   private parseResponse(response: string): AnalysisResult {
@@ -72,10 +68,6 @@ export class GeminiService implements AIService {
   }
 
   async generateTestbench(code: string, scenario: TestbenchScenario): Promise<string> {
-    const model = this.client.getGenerativeModel({
-      model: this.modelId,
-    });
-
     const prompt = createTestbenchGenerationPrompt(
       code,
       scenario.description,
@@ -86,14 +78,15 @@ export class GeminiService implements AIService {
     const config = getModelConfig(this.modelId);
     const temperature = config?.useDefaultTemperature ? undefined : 0;
 
-    const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: {
+    const result = await this.client.models.generateContent({
+      model: this.modelId,
+      contents: prompt,
+      config: {
         temperature,
       },
     });
 
-    let response = result.response.text();
+    let response = result.text ?? '';
 
     response = response.trim();
     response = response.replace(/^```vhdl\n?/i, '');
