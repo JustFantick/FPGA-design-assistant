@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Box, Container, Typography, Button, Paper, Tabs, Tab } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { useAppStore } from '@/store/useAppStore';
@@ -23,9 +23,13 @@ export default function Home() {
     setIsGeneratingTestbench,
     isGeneratingTestbench,
     testbenchResult,
+    setAbortAnalysis,
+    setAbortTestbench,
   } = useAppStore();
   const [activeTab, setActiveTab] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const analyzeControllerRef = useRef<AbortController | null>(null);
+  const testbenchControllerRef = useRef<AbortController | null>(null);
 
   const hasCriticalIssues = analysisResult
     ? analysisResult.issues.some((issue) => issue.severity === 'critical' || issue.severity === 'high')
@@ -43,8 +47,15 @@ export default function Home() {
       return;
     }
 
+    analyzeControllerRef.current?.abort();
+    const controller = new AbortController();
+    analyzeControllerRef.current = controller;
+
     setIsAnalyzing(true);
     setError(null);
+    setAbortAnalysis(() => {
+      controller.abort();
+    });
 
     try {
       const response = await fetch('/api/analyze', {
@@ -56,6 +67,7 @@ export default function Home() {
           code: vhdlCode,
           model: selectedModel,
         }),
+        signal: controller.signal,
       });
 
       const data: AnalyzeResponse = await response.json();
@@ -66,16 +78,28 @@ export default function Home() {
         setError(data.error || 'Analysis failed');
       }
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
       setError('Network error. Please try again.');
       console.error('Analysis error:', error);
     } finally {
       setIsAnalyzing(false);
+      setAbortAnalysis(null);
+      analyzeControllerRef.current = null;
     }
   };
 
   const handleGenerateTestbench = async (scenario: TestbenchScenario) => {
+    testbenchControllerRef.current?.abort();
+    const controller = new AbortController();
+    testbenchControllerRef.current = controller;
+
     setIsGeneratingTestbench(true);
     setError(null);
+    setAbortTestbench(() => {
+      controller.abort();
+    });
 
     try {
       const response = await fetch('/api/generate-testbench', {
@@ -88,6 +112,7 @@ export default function Home() {
           scenario,
           model: selectedModel,
         }),
+        signal: controller.signal,
       });
 
       const data: GenerateTestbenchResponse = await response.json();
@@ -100,10 +125,15 @@ export default function Home() {
         setError(data.error || 'Testbench generation failed');
       }
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
       setError('Network error. Please try again.');
       console.error('Testbench generation error:', error);
     } finally {
       setIsGeneratingTestbench(false);
+      setAbortTestbench(null);
+      testbenchControllerRef.current = null;
     }
   };
 

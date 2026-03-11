@@ -15,7 +15,7 @@ export class GeminiService implements AIService {
     this.modelId = modelId;
   }
 
-  async analyzeVHDL(code: string): Promise<AnalysisResult> {
+  async analyzeVHDL(code: string, signal?: AbortSignal): Promise<AnalysisResult> {
     const prompt = createVHDLAnalysisPrompt(code);
 
     const config = getModelConfig(this.modelId);
@@ -26,6 +26,7 @@ export class GeminiService implements AIService {
       contents: prompt,
       config: {
         temperature,
+        abortSignal: signal,
       },
     });
 
@@ -67,7 +68,7 @@ export class GeminiService implements AIService {
     };
   }
 
-  async generateTestbench(code: string, scenario: TestbenchScenario): Promise<string> {
+  async generateTestbench(code: string, scenario: TestbenchScenario, signal?: AbortSignal): Promise<string> {
     const prompt = createTestbenchGenerationPrompt(
       code,
       scenario.description,
@@ -83,6 +84,7 @@ export class GeminiService implements AIService {
       contents: prompt,
       config: {
         temperature,
+        abortSignal: signal,
       },
     });
 

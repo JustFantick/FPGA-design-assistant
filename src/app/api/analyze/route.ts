@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     const aiService = AIServiceFactory.createService(model);
-    const result = await aiService.analyzeVHDL(code);
+    const result = await aiService.analyzeVHDL(code, request.signal);
 
     return NextResponse.json<AnalyzeResponse>({
       success: true,

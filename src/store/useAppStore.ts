@@ -10,6 +10,8 @@ interface AppState {
   testbenchResult: TestbenchResult | null;
   isGeneratingTestbench: boolean;
   error: string | null;
+  abortAnalysis: (() => void) | null;
+  abortTestbench: (() => void) | null;
 
   setVhdlCode: (code: string) => void;
   setSelectedModel: (model: AIModel) => void;
@@ -18,6 +20,8 @@ interface AppState {
   setTestbenchResult: (result: TestbenchResult | null) => void;
   setIsGeneratingTestbench: (isGenerating: boolean) => void;
   setError: (error: string | null) => void;
+  setAbortAnalysis: (fn: (() => void) | null) => void;
+  setAbortTestbench: (fn: (() => void) | null) => void;
   resetStore: () => void;
 }
 
@@ -29,6 +33,8 @@ const initialState = {
   testbenchResult: null,
   isGeneratingTestbench: false,
   error: null,
+  abortAnalysis: null,
+  abortTestbench: null,
 };
 
 export const useAppStore = create<AppState>((set) => ({
@@ -47,6 +53,10 @@ export const useAppStore = create<AppState>((set) => ({
   setIsGeneratingTestbench: (isGenerating) => set({ isGeneratingTestbench: isGenerating }),
 
   setError: (error) => set({ error, analysisResult: null }),
+
+  setAbortAnalysis: (fn) => set({ abortAnalysis: fn }),
+
+  setAbortTestbench: (fn) => set({ abortTestbench: fn }),
 
   resetStore: () => set(initialState),
 }));

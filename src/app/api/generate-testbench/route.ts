@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     const aiService = AIServiceFactory.createService(model);
-    const testbenchCode = await aiService.generateTestbench(code, scenario);
+    const testbenchCode = await aiService.generateTestbench(code, scenario, request.signal);
 
     return NextResponse.json<GenerateTestbenchResponse>({
       success: true,
