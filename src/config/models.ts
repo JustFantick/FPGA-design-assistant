@@ -11,7 +11,6 @@ export const AI_MODELS: AIModelConfig[] = [
     id: 'claude-haiku-4-5',
     name: 'Claude Haiku 4.5',
     provider: 'anthropic',
-    isDefault: true,
   },
   {
     id: 'claude-sonnet-4-5',
@@ -27,6 +26,7 @@ export const AI_MODELS: AIModelConfig[] = [
     id: 'gemini-2.5-flash',
     name: 'Gemini 2.5 Flash',
     provider: 'google',
+    isDefault: true,
   },
   {
     id: 'gemini-2.5-pro',
