@@ -34,8 +34,14 @@ export const AI_MODELS: AIModelConfig[] = [
     provider: 'google',
   },
   {
-    id: 'gemini-3-pro-preview',
-    name: 'Gemini 3 Pro',
+    id: 'gemini-3-flash-preview',
+    name: 'Gemini 3 Flash Preview',
+    provider: 'google',
+    useDefaultTemperature: true,
+  },
+  {
+    id: 'gemini-3.1-pro-preview',
+    name: 'Gemini 3.1 Pro Preview',
     provider: 'google',
     useDefaultTemperature: true,
   },
