@@ -59,13 +59,16 @@ model VerificationToken {
 }
 
 model History {
-  id        String   @id @default(cuid())
-  userId    String
-  type      String
-  model     String
-  input     String   @db.Text
-  result    String   @db.Text
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  userId         String
+  type           String
+  model          String
+  input          String   @db.Text
+  result         String   @db.Text
+  scenario       String?  @db.Text
+  clockPeriod    String?
+  simulationTime String?
+  createdAt      DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
