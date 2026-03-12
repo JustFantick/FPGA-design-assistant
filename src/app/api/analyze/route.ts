@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 import { AIServiceFactory } from '@/services/ai/AIServiceFactory';
 import { AnalyzeRequest, AnalyzeResponse } from '@/types';
 
@@ -20,6 +23,19 @@ export async function POST(request: NextRequest) {
 
     const aiService = AIServiceFactory.createService(model);
     const result = await aiService.analyzeVHDL(code, request.signal);
+
+    const session = await getServerSession(authOptions);
+    if (session?.user && (session.user as any).id) {
+      prisma.history.create({
+        data: {
+          userId: (session.user as any).id,
+          type: 'analyze',
+          model,
+          input: code,
+          result: JSON.stringify(result),
+        },
+      }).catch(() => {});
+    }
 
     return NextResponse.json<AnalyzeResponse>({
       success: true,
