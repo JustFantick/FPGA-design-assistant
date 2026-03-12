@@ -77,3 +77,22 @@ export interface GenerateTestbenchResponse {
   result?: TestbenchResult;
   error?: string;
 }
+
+export interface HistoryEntry {
+  id: string;
+  type: 'analyze' | 'testbench';
+  model: string;
+  input: string;
+  result: string;
+  scenario?: string;
+  clockPeriod?: string;
+  simulationTime?: string;
+  createdAt: string;
+}
+
+export interface HistoryListResponse {
+  items: HistoryEntry[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
