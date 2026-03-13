@@ -4,7 +4,15 @@ export type AIModel =
   | 'claude-opus-4-1'
   | 'gemini-2.5-flash'
   | 'gemini-2.5-pro'
-  | 'gemini-3-pro-preview';
+  | 'gemini-3-flash-preview'
+  | 'gemini-3.1-pro-preview';
+
+export type KeyType = 'app' | 'user';
+
+export interface ProviderUserKey {
+  provider: 'anthropic' | 'google';
+  apiKey: string;
+}
 
 export type IssueCategory = 'syntax' | 'logic' | 'style' | 'efficiency';
 
@@ -46,6 +54,8 @@ export interface AnalysisResult {
 export interface AnalyzeRequest {
   code: string;
   model: AIModel;
+  keyType?: KeyType;
+  userKey?: ProviderUserKey;
 }
 
 export interface AnalyzeResponse {
@@ -70,6 +80,8 @@ export interface GenerateTestbenchRequest {
   code: string;
   scenario: TestbenchScenario;
   model: AIModel;
+  keyType?: KeyType;
+  userKey?: ProviderUserKey;
 }
 
 export interface GenerateTestbenchResponse {

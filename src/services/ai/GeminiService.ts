@@ -10,8 +10,8 @@ export class GeminiService implements AIService {
   private client: GoogleGenAI;
   private modelId: string;
 
-  constructor(modelId: string) {
-    this.client = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY || '' });
+  constructor(modelId: string, apiKey?: string) {
+    this.client = new GoogleGenAI({ apiKey: apiKey || process.env.GOOGLE_API_KEY || '' });
     this.modelId = modelId;
   }
 

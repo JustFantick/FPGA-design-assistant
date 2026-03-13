@@ -10,9 +10,9 @@ export class ClaudeService implements AIService {
   private client: Anthropic;
   private modelId: string;
 
-  constructor(modelId: string) {
+  constructor(modelId: string, apiKey?: string) {
     this.client = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
+      apiKey: apiKey || process.env.ANTHROPIC_API_KEY,
     });
     this.modelId = modelId;
   }
@@ -33,7 +33,7 @@ export class ClaudeService implements AIService {
           },
         ],
       },
-      { signal },
+      { signal }
     );
 
     const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
@@ -98,7 +98,7 @@ export class ClaudeService implements AIService {
           },
         ],
       },
-      { signal },
+      { signal }
     );
 
     let responseText = message.content[0].type === 'text' ? message.content[0].text : '';
