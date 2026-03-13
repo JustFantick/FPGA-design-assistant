@@ -15,6 +15,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import LogoutIcon from '@mui/icons-material/Logout';
 import HistoryIcon from '@mui/icons-material/History';
+import VpnKeyIcon from '@mui/icons-material/VpnKey';
 
 export default function AppHeader() {
   const { data: session, status } = useSession();
@@ -66,6 +67,17 @@ export default function AppHeader() {
                 <Typography variant="body2" color="text.secondary">
                   {session.user?.email}
                 </Typography>
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleMenuClose();
+                  router.push('/settings/api-keys');
+                }}
+              >
+                <ListItemIcon>
+                  <VpnKeyIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>API Keys</ListItemText>
               </MenuItem>
               <MenuItem
                 onClick={() => {
