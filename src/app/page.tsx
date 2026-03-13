@@ -3,14 +3,19 @@
 import { useState, useEffect, useRef } from 'react';
 import { Box, Container, Typography, Button, Paper, Tabs, Tab } from '@mui/material';
 import Grid from '@mui/material/Grid2';
+import { useSession } from 'next-auth/react';
 import { useAppStore } from '@/store/useAppStore';
 import ModelSelector from '@/components/ModelSelector';
 import CodeEditor from '@/components/CodeEditor';
 import ResultsPanel from '@/components/ResultsPanel';
 import TestbenchDialog from '@/components/TestbenchDialog';
 import { AnalyzeResponse, GenerateTestbenchResponse, TestbenchScenario } from '@/types';
+import { useProviderKeys } from '@/hooks/useProviderKeys';
+import { getModelKeyStrategy } from '@/services/ai/ModelAccessPolicy';
+import { getModelConfig } from '@/config/models';
 
 export default function Home() {
+  const { status } = useSession();
   const {
     vhdlCode,
     selectedModel,
@@ -26,6 +31,7 @@ export default function Home() {
     setAbortAnalysis,
     setAbortTestbench,
   } = useAppStore();
+  const { summary, getKey } = useProviderKeys();
   const [activeTab, setActiveTab] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const analyzeControllerRef = useRef<AbortController | null>(null);
@@ -40,6 +46,35 @@ export default function Home() {
       setActiveTab(0);
     }
   }, [testbenchResult, activeTab]);
+
+  const getKeyPayload = () => {
+    const isAuthenticated = status === 'authenticated';
+
+    const strategy = getModelKeyStrategy(selectedModel, {
+      isAuthenticated,
+      providerKeySummary: isAuthenticated ? summary : [],
+    });
+
+    if (strategy === 'user' && isAuthenticated) {
+      const modelConfig = getModelConfig(selectedModel);
+      if (modelConfig) {
+        const apiKey = getKey(modelConfig.provider);
+        if (apiKey) {
+          return {
+            keyType: 'user' as const,
+            userKey: {
+              provider: modelConfig.provider,
+              apiKey,
+            },
+          };
+        }
+      }
+    }
+
+    return {
+      keyType: 'app' as const,
+    };
+  };
 
   const handleAnalyze = async () => {
     if (!vhdlCode.trim()) {
@@ -58,6 +93,7 @@ export default function Home() {
     });
 
     try {
+      const keyPayload = getKeyPayload();
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: {
@@ -66,6 +102,7 @@ export default function Home() {
         body: JSON.stringify({
           code: vhdlCode,
           model: selectedModel,
+          ...keyPayload,
         }),
         signal: controller.signal,
       });
@@ -102,6 +139,7 @@ export default function Home() {
     });
 
     try {
+      const keyPayload = getKeyPayload();
       const response = await fetch('/api/generate-testbench', {
         method: 'POST',
         headers: {
@@ -111,6 +149,7 @@ export default function Home() {
           code: vhdlCode,
           scenario,
           model: selectedModel,
+          ...keyPayload,
         }),
         signal: controller.signal,
       });
