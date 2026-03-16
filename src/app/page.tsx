@@ -1,16 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Box, Container, Typography, Button, Paper, AppBar, Toolbar, Tabs, Tab } from '@mui/material';
+import { useState, useEffect, useRef } from 'react';
+import { Box, Container, Typography, Button, Paper, Tabs, Tab } from '@mui/material';
 import Grid from '@mui/material/Grid2';
+import { useSession } from 'next-auth/react';
 import { useAppStore } from '@/store/useAppStore';
 import ModelSelector from '@/components/ModelSelector';
 import CodeEditor from '@/components/CodeEditor';
 import ResultsPanel from '@/components/ResultsPanel';
 import TestbenchDialog from '@/components/TestbenchDialog';
 import { AnalyzeResponse, GenerateTestbenchResponse, TestbenchScenario } from '@/types';
+import { useProviderKeys } from '@/hooks/useProviderKeys';
+import { getModelKeyStrategy } from '@/services/ai/ModelAccessPolicy';
+import { getModelConfig } from '@/config/models';
 
 export default function Home() {
+  const { status } = useSession();
   const {
     vhdlCode,
     selectedModel,
@@ -23,9 +28,14 @@ export default function Home() {
     setIsGeneratingTestbench,
     isGeneratingTestbench,
     testbenchResult,
+    setAbortAnalysis,
+    setAbortTestbench,
   } = useAppStore();
+  const { summary, getKey } = useProviderKeys();
   const [activeTab, setActiveTab] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const analyzeControllerRef = useRef<AbortController | null>(null);
+  const testbenchControllerRef = useRef<AbortController | null>(null);
 
   const hasCriticalIssues = analysisResult
     ? analysisResult.issues.some((issue) => issue.severity === 'critical' || issue.severity === 'high')
@@ -37,16 +47,53 @@ export default function Home() {
     }
   }, [testbenchResult, activeTab]);
 
+  const getKeyPayload = () => {
+    const isAuthenticated = status === 'authenticated';
+
+    const strategy = getModelKeyStrategy(selectedModel, {
+      isAuthenticated,
+      providerKeySummary: isAuthenticated ? summary : [],
+    });
+
+    if (strategy === 'user' && isAuthenticated) {
+      const modelConfig = getModelConfig(selectedModel);
+      if (modelConfig) {
+        const apiKey = getKey(modelConfig.provider);
+        if (apiKey) {
+          return {
+            keyType: 'user' as const,
+            userKey: {
+              provider: modelConfig.provider,
+              apiKey,
+            },
+          };
+        }
+      }
+    }
+
+    return {
+      keyType: 'app' as const,
+    };
+  };
+
   const handleAnalyze = async () => {
     if (!vhdlCode.trim()) {
       setError('Please enter VHDL code to analyze');
       return;
     }
 
+    analyzeControllerRef.current?.abort();
+    const controller = new AbortController();
+    analyzeControllerRef.current = controller;
+
     setIsAnalyzing(true);
     setError(null);
+    setAbortAnalysis(() => {
+      controller.abort();
+    });
 
     try {
+      const keyPayload = getKeyPayload();
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: {
@@ -55,7 +102,9 @@ export default function Home() {
         body: JSON.stringify({
           code: vhdlCode,
           model: selectedModel,
+          ...keyPayload,
         }),
+        signal: controller.signal,
       });
 
       const data: AnalyzeResponse = await response.json();
@@ -66,18 +115,31 @@ export default function Home() {
         setError(data.error || 'Analysis failed');
       }
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
       setError('Network error. Please try again.');
       console.error('Analysis error:', error);
     } finally {
       setIsAnalyzing(false);
+      setAbortAnalysis(null);
+      analyzeControllerRef.current = null;
     }
   };
 
   const handleGenerateTestbench = async (scenario: TestbenchScenario) => {
+    testbenchControllerRef.current?.abort();
+    const controller = new AbortController();
+    testbenchControllerRef.current = controller;
+
     setIsGeneratingTestbench(true);
     setError(null);
+    setAbortTestbench(() => {
+      controller.abort();
+    });
 
     try {
+      const keyPayload = getKeyPayload();
       const response = await fetch('/api/generate-testbench', {
         method: 'POST',
         headers: {
@@ -87,7 +149,9 @@ export default function Home() {
           code: vhdlCode,
           scenario,
           model: selectedModel,
+          ...keyPayload,
         }),
+        signal: controller.signal,
       });
 
       const data: GenerateTestbenchResponse = await response.json();
@@ -100,23 +164,20 @@ export default function Home() {
         setError(data.error || 'Testbench generation failed');
       }
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
       setError('Network error. Please try again.');
       console.error('Testbench generation error:', error);
     } finally {
       setIsGeneratingTestbench(false);
+      setAbortTestbench(null);
+      testbenchControllerRef.current = null;
     }
   };
 
   return (
     <>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            FPGA Design Assistant
-          </Typography>
-        </Toolbar>
-      </AppBar>
-
       <Container maxWidth={false} sx={{ mt: 3, mb: 3 }}>
         <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box sx={{ minWidth: 200 }}>

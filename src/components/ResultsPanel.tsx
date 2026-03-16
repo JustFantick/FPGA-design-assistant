@@ -1,11 +1,22 @@
 'use client';
 
-import { Box, Typography, Paper, Chip, List, ListItem, Alert, Button, IconButton } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Paper,
+  Chip,
+  List,
+  ListItem,
+  Alert,
+  Button,
+  LinearProgress,
+} from '@mui/material';
+import StopCircleOutlinedIcon from '@mui/icons-material/StopCircleOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DownloadIcon from '@mui/icons-material/Download';
 import { useAppStore } from '@/store/useAppStore';
 import { Issue } from '@/types';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const severityColors = {
   critical: 'error' as const,
@@ -25,8 +36,69 @@ interface ResultsPanelProps {
   showTestbench?: boolean;
 }
 
+function ElapsedTimer({ active }: { active: boolean }) {
+  const [elapsed, setElapsed] = useState(0);
+  const startRef = useRef(Date.now());
+
+  useEffect(() => {
+    if (!active) return;
+    startRef.current = Date.now();
+    setElapsed(0);
+    const id = setInterval(() => setElapsed(Date.now() - startRef.current), 100);
+    return () => clearInterval(id);
+  }, [active]);
+
+  const seconds = Math.floor(elapsed / 1000);
+  const tenths = Math.floor((elapsed % 1000) / 100);
+
+  return (
+    <Typography variant="body2" color="text.secondary" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+      {seconds}.{tenths}s
+    </Typography>
+  );
+}
+
+function LoadingIndicator({
+  label,
+  onCancel,
+}: {
+  label: string;
+  onCancel: (() => void) | null;
+}) {
+  return (
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+        <Typography variant="body1" fontWeight={500}>
+          {label}
+        </Typography>
+        <ElapsedTimer active />
+      </Box>
+      <LinearProgress sx={{ mb: 2, borderRadius: 1 }} />
+      {onCancel && (
+        <Button
+          variant="outlined"
+          color="error"
+          size="small"
+          startIcon={<StopCircleOutlinedIcon />}
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+      )}
+    </Box>
+  );
+}
+
 export default function ResultsPanel({ showTestbench = false }: ResultsPanelProps) {
-  const { analysisResult, isAnalyzing, error, testbenchResult, isGeneratingTestbench } = useAppStore();
+  const {
+    analysisResult,
+    isAnalyzing,
+    error,
+    testbenchResult,
+    isGeneratingTestbench,
+    abortAnalysis,
+    abortTestbench,
+  } = useAppStore();
   const [copied, setCopied] = useState(false);
 
   const handleCopyToClipboard = async () => {
@@ -53,11 +125,7 @@ export default function ResultsPanel({ showTestbench = false }: ResultsPanelProp
 
   if (showTestbench) {
     if (isGeneratingTestbench) {
-      return (
-        <Box sx={{ p: 2 }}>
-          <Alert severity="info">Generating testbench...</Alert>
-        </Box>
-      );
+      return <LoadingIndicator label="Generating testbench..." onCancel={abortTestbench} />;
     }
 
     if (!testbenchResult) {
@@ -124,11 +192,7 @@ export default function ResultsPanel({ showTestbench = false }: ResultsPanelProp
   }
 
   if (isAnalyzing) {
-    return (
-      <Box sx={{ p: 2 }}>
-        <Alert severity="info">Analyzing code...</Alert>
-      </Box>
-    );
+    return <LoadingIndicator label="Analyzing code..." onCancel={abortAnalysis} />;
   }
 
   if (!analysisResult) {

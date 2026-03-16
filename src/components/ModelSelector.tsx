@@ -1,12 +1,23 @@
 'use client';
 
 import { FormControl, InputLabel, MenuItem, Select, SelectChangeEvent } from '@mui/material';
+import { useSession } from 'next-auth/react';
 import { useAppStore } from '@/store/useAppStore';
 import { AIModel } from '@/types';
 import { AI_MODELS } from '@/config/models';
+import { useProviderKeys } from '@/hooks/useProviderKeys';
+import { getAvailableModels } from '@/services/ai/ModelAccessPolicy';
 
 export default function ModelSelector() {
   const { selectedModel, setSelectedModel } = useAppStore();
+  const { status } = useSession();
+  const { summary } = useProviderKeys();
+
+  const isAuthenticated = status === 'authenticated';
+  const availableModels = getAvailableModels({
+    isAuthenticated,
+    providerKeySummary: isAuthenticated ? summary : [],
+  });
 
   const handleChange = (event: SelectChangeEvent<AIModel>) => {
     setSelectedModel(event.target.value as AIModel);
@@ -22,11 +33,25 @@ export default function ModelSelector() {
         label="AI Model"
         onChange={handleChange}
       >
-        {AI_MODELS.map((model) => (
-          <MenuItem key={model.id} value={model.id}>
-            {model.name}
-          </MenuItem>
-        ))}
+        {availableModels.map(({ config, strategy }) => {
+          const disabled = strategy === 'unavailable';
+          let labelSuffix = '';
+
+          if (!disabled) {
+            if (strategy === 'user') {
+              labelSuffix = ' (Your key)';
+            } else if (strategy === 'app' && !config.enabledForGuests) {
+              labelSuffix = ' (App key)';
+            }
+          }
+
+          return (
+            <MenuItem key={config.id} value={config.id} disabled={disabled}>
+              {config.name}
+              {labelSuffix}
+            </MenuItem>
+          );
+        })}
       </Select>
     </FormControl>
   );

@@ -13,6 +13,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { TestbenchScenario } from '@/types';
+import { useAppStore } from '@/store/useAppStore';
 
 interface TestbenchDialogProps {
   open: boolean;
@@ -25,6 +26,7 @@ export default function TestbenchDialog({ open, onClose, onGenerate, isGeneratin
   const [description, setDescription] = useState('');
   const [clockPeriod, setClockPeriod] = useState('');
   const [simulationTime, setSimulationTime] = useState('');
+  const abortTestbench = useAppStore((s) => s.abortTestbench);
 
   const handleGenerate = () => {
     if (!description.trim()) return;
@@ -39,12 +41,13 @@ export default function TestbenchDialog({ open, onClose, onGenerate, isGeneratin
   };
 
   const handleClose = () => {
-    if (!isGenerating) {
-      setDescription('');
-      setClockPeriod('');
-      setSimulationTime('');
-      onClose();
+    if (isGenerating) {
+      abortTestbench?.();
     }
+    setDescription('');
+    setClockPeriod('');
+    setSimulationTime('');
+    onClose();
   };
 
   return (
@@ -90,8 +93,8 @@ export default function TestbenchDialog({ open, onClose, onGenerate, isGeneratin
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={isGenerating}>
-          Cancel
+        <Button onClick={handleClose} color={isGenerating ? 'error' : 'inherit'}>
+          {isGenerating ? 'Abort' : 'Cancel'}
         </Button>
         <Button
           onClick={handleGenerate}

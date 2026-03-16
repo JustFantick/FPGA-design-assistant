@@ -10,28 +10,31 @@ export class ClaudeService implements AIService {
   private client: Anthropic;
   private modelId: string;
 
-  constructor(modelId: string) {
+  constructor(modelId: string, apiKey?: string) {
     this.client = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
+      apiKey: apiKey || process.env.ANTHROPIC_API_KEY,
     });
     this.modelId = modelId;
   }
 
-  async analyzeVHDL(code: string): Promise<AnalysisResult> {
+  async analyzeVHDL(code: string, signal?: AbortSignal): Promise<AnalysisResult> {
     const prompt = createVHDLAnalysisPrompt(code);
     const config = getModelConfig(this.modelId);
 
-    const message = await this.client.messages.create({
-      model: this.modelId,
-      max_tokens: 8192,
-      temperature: config?.useDefaultTemperature ? undefined : 0,
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-    });
+    const message = await this.client.messages.create(
+      {
+        model: this.modelId,
+        max_tokens: 8192,
+        temperature: config?.useDefaultTemperature ? undefined : 0,
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+      },
+      { signal }
+    );
 
     const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
 
@@ -73,7 +76,7 @@ export class ClaudeService implements AIService {
     };
   }
 
-  async generateTestbench(code: string, scenario: TestbenchScenario): Promise<string> {
+  async generateTestbench(code: string, scenario: TestbenchScenario, signal?: AbortSignal): Promise<string> {
     const prompt = createTestbenchGenerationPrompt(
       code,
       scenario.description,
@@ -83,17 +86,20 @@ export class ClaudeService implements AIService {
 
     const config = getModelConfig(this.modelId);
 
-    const message = await this.client.messages.create({
-      model: this.modelId,
-      max_tokens: 8192,
-      temperature: config?.useDefaultTemperature ? undefined : 0,
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-    });
+    const message = await this.client.messages.create(
+      {
+        model: this.modelId,
+        max_tokens: 8192,
+        temperature: config?.useDefaultTemperature ? undefined : 0,
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+      },
+      { signal }
+    );
 
     let responseText = message.content[0].type === 'text' ? message.content[0].text : '';
 
