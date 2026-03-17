@@ -18,14 +18,14 @@ export const AI_MODELS: AIModelConfig[] = [
     requiresPersonalKey: true,
   },
   {
-    id: 'claude-sonnet-4-5',
-    name: 'Claude Sonnet 4.5',
+    id: 'claude-sonnet-4-6',
+    name: 'Claude Sonnet 4.6',
     provider: 'anthropic',
     requiresPersonalKey: true,
   },
   {
-    id: 'claude-opus-4-1',
-    name: 'Claude Opus 4.1',
+    id: 'claude-opus-4-6',
+    name: 'Claude Opus 4.6',
     provider: 'anthropic',
     requiresPersonalKey: true,
   },
