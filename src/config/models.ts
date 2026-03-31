@@ -1,6 +1,6 @@
 import { AIProviderId } from './providers';
 
-export interface AIModelConfig {
+export type AIModelConfig = Readonly<{
   id: string;
   name: string;
   provider: AIProviderId;
@@ -8,7 +8,7 @@ export interface AIModelConfig {
   useDefaultTemperature?: boolean;
   enabledForGuests?: boolean;
   requiresPersonalKey?: boolean;
-}
+}>;
 
 export const AI_MODELS: AIModelConfig[] = [
   {
@@ -56,7 +56,7 @@ export const AI_MODELS: AIModelConfig[] = [
     requiresPersonalKey: true,
     useDefaultTemperature: true,
   },
-];
+] as const;
 
 export const DEFAULT_MODEL = AI_MODELS.find((m) => m.isDefault)?.id || AI_MODELS[0].id;
 
