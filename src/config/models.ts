@@ -1,7 +1,8 @@
+import { AIModel } from '@/types';
 import { AIProviderId } from './providers';
 
 export type AIModelConfig = Readonly<{
-  id: string;
+  id: AIModel;
   name: string;
   provider: AIProviderId;
   isDefault?: boolean;

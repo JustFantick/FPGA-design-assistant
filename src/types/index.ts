@@ -1,11 +1,5 @@
-export type AIModel =
-  | 'claude-haiku-4-5'
-  | 'claude-sonnet-4-5'
-  | 'claude-opus-4-1'
-  | 'gemini-2.5-flash'
-  | 'gemini-2.5-pro'
-  | 'gemini-3-flash-preview'
-  | 'gemini-3.1-pro-preview';
+export type AIModelFamily = 'claude' | 'gemini';
+export type AIModel = `${AIModelFamily}-${string}`;
 
 export type KeyType = 'app' | 'user';
 
