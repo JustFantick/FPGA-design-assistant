@@ -25,9 +25,20 @@ interface AppState {
   resetStore: () => void;
 }
 
-const initialState = {
+const initialState: Pick<
+  AppState,
+  | 'vhdlCode'
+  | 'selectedModel'
+  | 'analysisResult'
+  | 'isAnalyzing'
+  | 'testbenchResult'
+  | 'isGeneratingTestbench'
+  | 'error'
+  | 'abortAnalysis'
+  | 'abortTestbench'
+> = {
   vhdlCode: '',
-  selectedModel: DEFAULT_MODEL as AIModel,
+  selectedModel: DEFAULT_MODEL,
   analysisResult: null,
   isAnalyzing: false,
   testbenchResult: null,
