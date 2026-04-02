@@ -93,7 +93,6 @@ export default function ResultsPanel({ showTestbench = false }: ResultsPanelProp
   const {
     analysisResult,
     isAnalyzing,
-    error,
     testbenchResult,
     isGeneratingTestbench,
     abortAnalysis,
@@ -179,14 +178,6 @@ export default function ResultsPanel({ showTestbench = false }: ResultsPanelProp
         >
           <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{testbenchResult.code}</pre>
         </Paper>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box sx={{ p: 2 }}>
-        <Alert severity="error">{error}</Alert>
       </Box>
     );
   }

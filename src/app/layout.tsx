@@ -6,6 +6,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from '@/theme';
 import AppHeader from '@/components/AppHeader';
+import GlobalErrorSnackbar from '@/components/GlobalErrorSnackbar';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <CssBaseline />
               <AppHeader />
               {children}
+              <GlobalErrorSnackbar />
             </ThemeProvider>
           </AppRouterCacheProvider>
         </SessionProvider>

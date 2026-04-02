@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -16,8 +16,17 @@ import NextLink from 'next/link';
 import GoogleIcon from '@mui/icons-material/Google';
 import GitHubIcon from '@mui/icons-material/GitHub';
 
+const oauthErrorMessages: Record<string, string> = {
+  OAuthCallback: 'Authentication failed. Please try again.',
+  OAuthCreateAccount: 'Could not create account. Please try again later.',
+  OAuthAccountNotLinked: 'This email is already registered with a different provider.',
+  Default: 'An unexpected error occurred. Please try again.',
+};
+
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const oauthError = searchParams.get('error');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -61,9 +70,9 @@ export default function LoginPage() {
             Sign In
           </Typography>
 
-          {error && (
+          {(error || oauthError) && (
             <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
+              {error || oauthErrorMessages[oauthError!] || oauthErrorMessages.Default}
             </Alert>
           )}
 
