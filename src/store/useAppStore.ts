@@ -63,7 +63,7 @@ export const useAppStore = create<AppState>((set) => ({
 
   setIsGeneratingTestbench: (isGenerating) => set({ isGeneratingTestbench: isGenerating }),
 
-  setError: (error) => set(error ? { error, analysisResult: null } : { error }),
+  setError: (error) => set({ error }),
 
   setAbortAnalysis: (fn) => set({ abortAnalysis: fn }),
 
