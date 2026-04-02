@@ -39,18 +39,18 @@ import { HistoryEntry, HistoryListResponse, AnalysisResult, Issue } from '@/type
 import { AI_MODELS } from '@/config/models';
 
 const severityColors = {
-  critical: 'error' as const,
-  high: 'error' as const,
-  medium: 'warning' as const,
-  low: 'info' as const,
-};
+  critical: 'error',
+  high: 'error',
+  medium: 'warning',
+  low: 'info',
+} as const;
 
 const categoryColors = {
-  syntax: 'error' as const,
-  logic: 'warning' as const,
-  style: 'info' as const,
-  efficiency: 'success' as const,
-};
+  syntax: 'error',
+  logic: 'warning',
+  style: 'info',
+  efficiency: 'success',
+} as const;
 
 function getModelName(modelId: string): string {
   return AI_MODELS.find((m) => m.id === modelId)?.name || modelId;
