@@ -7,21 +7,24 @@ import CssBaseline from '@mui/material/CssBaseline';
 import theme from '@/theme';
 import AppHeader from '@/components/AppHeader';
 import GlobalErrorSnackbar from '@/components/GlobalErrorSnackbar';
+import { MSWProvider } from '@/mocks/MSWProvider';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <SessionProvider>
-          <AppRouterCacheProvider>
-            <ThemeProvider theme={theme}>
-              <CssBaseline />
-              <AppHeader />
-              {children}
-              <GlobalErrorSnackbar />
-            </ThemeProvider>
-          </AppRouterCacheProvider>
-        </SessionProvider>
+        <MSWProvider>
+          <SessionProvider>
+            <AppRouterCacheProvider>
+              <ThemeProvider theme={theme}>
+                <CssBaseline />
+                <AppHeader />
+                {children}
+                <GlobalErrorSnackbar />
+              </ThemeProvider>
+            </AppRouterCacheProvider>
+          </SessionProvider>
+        </MSWProvider>
       </body>
     </html>
   );
