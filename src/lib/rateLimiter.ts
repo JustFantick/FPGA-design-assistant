@@ -8,14 +8,19 @@ interface RateLimitEntry {
   resetTime: number;
 }
 
-class RateLimiter {
+export class RateLimiter {
   private store: Map<string, RateLimitEntry> = new Map();
   private config: RateLimitConfig;
-  private cleanupInterval: NodeJS.Timeout;
+  private cleanupInterval: ReturnType<typeof setInterval>;
 
   constructor(config: RateLimitConfig) {
     this.config = config;
     this.cleanupInterval = setInterval(() => this.cleanup(), config.windowMs);
+    // .unref() is not available in the Edge Runtime, so we guard it.
+    // Without this, the timer keeps Jest workers alive after tests finish.
+    if (typeof this.cleanupInterval.unref === 'function') {
+      this.cleanupInterval.unref();
+    }
   }
 
   private cleanup(): void {
