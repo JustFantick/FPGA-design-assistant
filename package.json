@@ -44,8 +44,14 @@
     "eslint-config-next": "15.0.3",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
+    "msw": "^2.12.14",
     "prisma": "^7.4.2",
     "ts-jest": "^29.4.9",
     "typescript": "^5.7.2"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
